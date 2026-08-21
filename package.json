@@ -1,0 +1,21 @@
+{
+  "name": "skulpt",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Taste capture and de-slopping for coding agents.",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node server/src/index.js",
+    "dev": "node --watch server/src/index.js",
+    "test": "node --test shared/*.test.js server/src/*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.71.0",
+    "@hono/node-server": "^1.14.0",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "hono": "^4.7.0",
+    "postgres": "^3.4.5",
+    "zod": "^3.24.0"
+  }
+}

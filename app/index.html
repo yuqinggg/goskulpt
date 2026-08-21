@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skulpt — train your taste</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Skulpt's own rules apply here: no Inter, no pure neutrals, no nested cards. */
+:root{
+  --ink:hsl(80 12% 9%); --ink-2:hsl(80 8% 34%); --ink-3:hsl(80 7% 52%);
+  --bg:hsl(72 30% 97%); --surface:hsl(72 40% 99%);
+  --line:hsl(80 14% 87%); --accent:hsl(84 52% 38%); --warn:hsl(14 62% 44%);
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Grotesk',ui-sans-serif,sans-serif;background:var(--bg);color:var(--ink);
+  line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+h1,h2{letter-spacing:-.03em;line-height:1.05;font-weight:600}
+h1{font-size:clamp(28px,4vw,42px)}
+h2{font-size:22px}
+a{color:var(--accent)}
+.wrap{max-width:880px;margin:0 auto;padding:28px 24px 80px}
+header{display:flex;align-items:center;gap:10px;margin-bottom:48px;font-size:13px;
+  letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+header i{width:15px;height:15px;border-radius:5px;background:linear-gradient(140deg,hsl(72 80% 62%),var(--accent))}
+header .sp{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:400;font-size:13px;color:var(--ink-3)}
+
+.btn{font:inherit;font-size:15px;font-weight:500;padding:12px 18px;border-radius:var(--r);border:1px solid transparent;
+  cursor:pointer;background:var(--ink);color:var(--bg);transition:opacity .18s ease-out}
+.btn:hover{opacity:.86}
+.btn[disabled]{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+input[type=email],input[type=url],input[type=text]{font:inherit;font-size:16px;padding:12px 14px;border-radius:var(--r);
+  border:1px solid var(--line);background:var(--surface);color:var(--ink);width:100%}
+input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.lede{color:var(--ink-2);margin-top:12px;max-width:56ch}
+.muted{color:var(--ink-3);font-size:13.5px}
+.err{color:var(--warn);font-size:14px;margin-top:12px;min-height:20px}
+.step{display:none}.step.on{display:block}
+
+/* deck */
+.deck-wrap{display:grid;grid-template-columns:1fr 280px;gap:40px;margin-top:32px;align-items:start}
+.stage{position:relative;height:400px}
+.swipecard{position:absolute;inset:0;border-radius:14px;border:1px solid var(--line);overflow:hidden;
+  display:flex;flex-direction:column;justify-content:flex-end;padding:28px;cursor:grab;user-select:none;
+  transition:transform .4s cubic-bezier(.2,.8,.25,1),opacity .3s ease-out}
+.swipecard h3{font-size:30px;letter-spacing:-.03em;line-height:1.06;font-weight:600}
+.swipecard p{font-size:13px;margin-top:10px;opacity:.72}
+.axis-tag{position:absolute;top:20px;left:24px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;opacity:.6}
+.controls{display:flex;gap:14px;justify-content:center;margin-top:22px}
+.ctrl{width:54px;height:54px;border-radius:50%;border:1px solid var(--line);background:var(--surface);
+  cursor:pointer;font-size:19px;display:grid;place-items:center;transition:transform .15s ease-out}
+.ctrl:hover{transform:translateY(-2px)}
+.ctrl-l{text-align:center;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:7px}
+
+/* nudge — the micro-revision that carries the real signal */
+.nudge{margin-top:20px;padding:16px 0;border-top:1px solid var(--line);opacity:0;
+  pointer-events:none;transition:opacity .2s ease-out}
+.nudge.on{opacity:1;pointer-events:auto}
+.chip{font:inherit;font-size:13px;padding:7px 13px;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface);color:var(--ink-2);cursor:pointer;margin:0 6px 6px 0}
+.chip:hover{border-color:var(--accent);color:var(--ink)}
+
+/* meters */
+.meter{height:5px;border-radius:99px;background:hsl(80 14% 89%);overflow:hidden;margin:8px 0 18px}
+.meter i{display:block;height:100%;background:var(--accent);width:0;transition:width .4s cubic-bezier(.2,.8,.25,1)}
+.axis{display:grid;grid-template-columns:78px 1fr;gap:10px;align-items:center;font-size:11.5px;color:var(--ink-3);margin-bottom:7px}
+.bar{height:4px;border-radius:99px;background:hsl(80 14% 89%);position:relative}
+.bar i{position:absolute;top:-2px;width:8px;height:8px;border-radius:50%;background:var(--accent);transition:left .4s cubic-bezier(.2,.8,.25,1)}
+
+pre{background:hsl(80 14% 94%);border:1px solid var(--line);border-radius:var(--r);padding:14px;
+  overflow-x:auto;font-size:12.5px;line-height:1.6;margin-top:12px}
+code{font-family:ui-monospace,SFMono-Regular,monospace}
+.key{font-family:ui-monospace,monospace;font-size:13px;word-break:break-all;background:hsl(80 14% 94%);
+  border:1px solid var(--line);border-radius:var(--r);padding:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px}
+.sep{border:0;border-top:1px solid var(--line);margin:40px 0}
+@media(max-width:760px){.deck-wrap{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <i></i> Skulpt
+    <span class="sp" id="who"></span>
+  </header>
+
+  <!-- 1. sign in -->
+  <section class="step on" id="step-auth">
+    <h1>Train your taste.</h1>
+    <p class="lede">Swipe through variants of your own site. Skulpt learns what you like and compiles it into direction your coding agent follows. Takes about a minute.</p>
+    <form class="row" id="auth-form" style="margin-top:28px;max-width:460px">
+      <input type="email" id="email" placeholder="you@company.com" required autocomplete="email">
+      <button class="btn" type="submit">Send link</button>
+    </form>
+    <p class="err" id="auth-err"></p>
+  </section>
+
+  <!-- 2. sent -->
+  <section class="step" id="step-sent">
+    <h1>Check your email.</h1>
+    <p class="lede">We sent a sign-in link to <strong id="sent-to"></strong>. It works once and expires in twenty minutes.</p>
+  </section>
+
+  <!-- 3. url -->
+  <section class="step" id="step-url">
+    <h1>What are we styling?</h1>
+    <p class="lede">Paste your site or app. Skulpt reads its current design tokens so the cards you swipe are variants of your own product, not stock inspiration.</p>
+    <form class="row" id="url-form" style="margin-top:28px;max-width:520px">
+      <input type="url" id="url" placeholder="https://yourproduct.com" required>
+      <button class="btn" type="submit" id="url-btn">Read it</button>
+    </form>
+    <p class="err" id="url-err"></p>
+  </section>
+
+  <!-- 4. swipe -->
+  <section class="step" id="step-swipe">
+    <h1>Which of these feels right?</h1>
+    <p class="lede" id="swipe-sub"></p>
+    <div class="deck-wrap">
+      <div>
+        <div class="stage" id="stage"></div>
+        <div class="controls">
+          <div><button class="ctrl" data-v="pass" title="Pass">✕</button><div class="ctrl-l">Pass</div></div>
+          <div><button class="ctrl" data-v="keep" title="Keep">♡</button><div class="ctrl-l">Keep</div></div>
+          <div><button class="ctrl" data-v="love" title="Love">✦</button><div class="ctrl-l">Love</div></div>
+        </div>
+        <div class="nudge" id="nudge">
+          <p class="muted" style="margin-bottom:10px">Anything you'd change? One tap is worth ten swipes.</p>
+          <div id="nudge-chips"></div>
+        </div>
+      </div>
+      <aside>
+        <p class="muted">Taste locked <b id="conf">0%</b></p>
+        <div class="meter"><i id="conf-bar"></i></div>
+        <div id="axes"></div>
+        <button class="btn ghost" id="finish" style="margin-top:20px;width:100%">Compile my taste</button>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 5. done -->
+  <section class="step" id="step-done">
+    <h1>Your taste is compiled.</h1>
+    <p class="lede" id="done-sub"></p>
+
+    <h2 style="margin-top:40px">Download it</h2>
+    <p class="muted">Drop into your repo. Free, works with any agent.</p>
+    <div class="grid">
+      <button class="btn ghost" data-fmt="claude">Claude Code — SKILL.md</button>
+      <button class="btn ghost" data-fmt="codex">Codex — AGENTS.md</button>
+      <button class="btn ghost" data-fmt="cursor">Cursor — .cursorrules</button>
+      <button class="btn ghost" data-fmt="md">Plain markdown</button>
+    </div>
+
+    <hr class="sep">
+
+    <h2>Or let it do the work</h2>
+    <p class="lede">The file is a static brief — your agent still has to follow it. The MCP server checks every file your agent writes and rewrites what it gets wrong.</p>
+    <div id="key-area" style="margin-top:20px">
+      <button class="btn" id="mkkey">Create an MCP key</button>
+    </div>
+    <p class="err" id="done-err"></p>
+  </section>
+</div>
+
+<script type="module">
+import { AXES, POLES, NUDGES, cardStyle } from '../shared/taste.js';
+
+const API = localStorage.skulptApi || 'https://skulpt-api.up.railway.app';
+const $ = s => document.querySelector(s);
+const show = id => document.querySelectorAll('.step').forEach(s => s.classList.toggle('on', s.id === id));
+
+let token = localStorage.skulptToken || null;
+let state = { profile: null, deck: [], i: 0, pendingCard: null };
+
+// The magic link lands back here with the token in the fragment.
+const hash = new URLSearchParams(location.hash.slice(1));
+if (hash.get('token')) {
+  token = hash.get('token');
+  localStorage.skulptToken = token;
+  history.replaceState(null, '', location.pathname);
+}
+if (hash.get('error')) $('#auth-err').textContent = 'That link expired. Request a new one.';
+
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    ...opts,
+    headers: {
+      ...(opts.body ? { 'content-type': 'application/json' } : {}),
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+      ...opts.headers,
+    },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (res.status === 401) { localStorage.removeItem('skulptToken'); token = null; show('step-auth'); throw new Error('Sign in first.'); }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+
+// --- 1/2 auth -------------------------------------------------------------
+$('#auth-form').onsubmit = async e => {
+  e.preventDefault();
+  $('#auth-err').textContent = '';
+  try {
+    const r = await api('/auth/request', { method: 'POST', body: { email: $('#email').value } });
+    $('#sent-to').textContent = $('#email').value;
+    show('step-sent');
+    if (r.delivered === 'console') $('#step-sent').insertAdjacentHTML('beforeend',
+      '<p class="muted" style="margin-top:16px">Dev mode: the link was printed to the server console.</p>');
+  } catch (e) { $('#auth-err').textContent = e.message; }
+};
+
+// --- 3 url ----------------------------------------------------------------
+$('#url-form').onsubmit = async e => {
+  e.preventDefault();
+  $('#url-err').textContent = '';
+  $('#url-btn').disabled = true;
+  $('#url-btn').textContent = 'Reading…';
+  try {
+    const r = await api('/sites', { method: 'POST', body: { url: $('#url').value } });
+    state.profile = r.profile;
+    state.deck = r.deck;
+    state.i = 0;
+    $('#swipe-sub').textContent = `Variants of ${r.site.host}. Swipe about twenty.`;
+    show('step-swipe');
+    render();
+    paint(r.profile.vector, 0);
+  } catch (e) { $('#url-err').textContent = e.message; }
+  finally { $('#url-btn').disabled = false; $('#url-btn').textContent = 'Read it'; }
+};
+
+// --- 4 swipe --------------------------------------------------------------
+function label(axes) {
+  // Name the card after the two axes furthest from neutral — it gives the
+  // user something concrete to react to instead of an abstract swatch.
+  const top = AXES.map(a => ({ a, d: Math.abs(axes[a] - 0.5) })).sort((x, y) => y.d - x.d).slice(0, 2);
+  return top.map(t => POLES[t.a][axes[t.a] < 0.5 ? 0 : 1]).join(' · ');
+}
+
+const HEADLINES = ['Design that moves with purpose', 'A better way to grow', 'Built for the long run',
+  'Clarity at every scale', 'Made to be used', 'Precision by default', 'Craft that lasts'];
+
+function render() {
+  const stage = $('#stage');
+  stage.innerHTML = '';
+  for (let k = 2; k >= 0; k--) {
+    const card = state.deck[state.i + k];
+    if (!card) continue;
+    const s = card.style || cardStyle(card.axes);
+    const el = document.createElement('div');
+    el.className = 'swipecard';
+    el.style.cssText += `
+      background:${s.gradient ? `linear-gradient(150deg, ${s.bg}, ${s.accent})` : s.bg};
+      color:${s.ink}; border-radius:${s.radius}px; padding:${s.pad}px;
+      box-shadow:${s.shadow}; font-family:'${s.font}','Space Grotesk',sans-serif;
+      transform:translate(${k * 20}px,${k * -8}px) scale(${1 - k * .04}) rotate(${k * 2.5}deg);
+      z-index:${10 - k};`;
+    el.innerHTML = `<span class="axis-tag">${label(card.axes)}</span>
+      <h3 style="font-weight:${s.weight};letter-spacing:${s.tracking}em">${HEADLINES[(state.i + k) % HEADLINES.length]}</h3>
+      <p>${POLES.spacing[card.axes.spacing < .5 ? 0 : 1]} spacing · ${POLES.contrast[card.axes.contrast < .5 ? 0 : 1]} contrast</p>`;
+    if (k === 0) drag(el);
+    stage.appendChild(el);
+  }
+  if (!state.deck[state.i]) more();
+}
+
+async function more() {
+  try {
+    const r = await api(`/deck?profileId=${state.profile.id}&from=${state.i}`);
+    state.deck.push(...r.deck);
+    render();
+  } catch (e) { $('#swipe-sub').textContent = e.message; }
+}
+
+async function swipe(verdict, nudge) {
+  const card = state.pendingCard || state.deck[state.i];
+  if (!card) return;
+  const top = $('#stage').lastElementChild;
+  if (top) {
+    const dir = verdict === 'pass' ? -1 : 1;
+    top.style.transform = `translate(${dir * 460}px,${verdict === 'love' ? -50 : 30}px) rotate(${dir * 16}deg)`;
+    top.style.opacity = '0';
+  }
+  state.i++;
+  state.pendingCard = null;
+  $('#nudge').classList.remove('on');
+
+  try {
+    const r = await api('/swipe', { method: 'POST', body: { profileId: state.profile.id, card, verdict, nudge } });
+    paint(r.vector, r.confidence);
+    state.profile.vector = r.vector;
+    if (r.swipes >= 24) finish();
+  } catch (e) { $('#swipe-sub').textContent = e.message; }
+  setTimeout(render, 300);
+}
+
+// A Love opens the nudge row — the one-tap micro-revision. Research (Wu et al.
+// 2026) puts binary ranking at near-random agreement; a directional correction
+// is what actually moves the model.
+$('#nudge-chips').innerHTML = Object.keys(NUDGES)
+  .map(n => `<button class="chip" data-n="${n}">${n}</button>`).join('') +
+  `<button class="chip" data-n="">no change</button>`;
+
+$('#nudge-chips').onclick = e => {
+  const b = e.target.closest('[data-n]');
+  if (b) swipe('love', b.dataset.n || undefined);
+};
+
+document.querySelectorAll('.ctrl').forEach(b => b.onclick = () => {
+  const v = b.dataset.v;
+  if (v === 'love') {
+    state.pendingCard = state.deck[state.i];
+    $('#nudge').classList.add('on');
+  } else swipe(v);
+});
+
+function drag(el) {
+  let x0 = 0, y0 = 0, dx = 0, on = false;
+  const down = e => { on = true; el.style.transition = 'none'; const p = e.touches ? e.touches[0] : e; x0 = p.clientX; y0 = p.clientY; };
+  const move = e => {
+    if (!on) return;
+    const p = e.touches ? e.touches[0] : e;
+    dx = p.clientX - x0;
+    el.style.transform = `translate(${dx}px,${p.clientY - y0}px) rotate(${dx * .05}deg)`;
+  };
+  const up = () => {
+    if (!on) return;
+    on = false; el.style.transition = '';
+    if (Math.abs(dx) > 90) {
+      if (dx > 0) { state.pendingCard = state.deck[state.i]; $('#nudge').classList.add('on'); el.style.transform = ''; }
+      else swipe('pass');
+    } else el.style.transform = '';
+    dx = 0;
+  };
+  el.addEventListener('mousedown', down); el.addEventListener('touchstart', down, { passive: true });
+  addEventListener('mousemove', move); addEventListener('touchmove', move, { passive: true });
+  addEventListener('mouseup', up); addEventListener('touchend', up);
+}
+
+function paint(vec, conf) {
+  $('#conf').textContent = `${Math.round(conf * 100)}%`;
+  $('#conf-bar').style.width = `${conf * 100}%`;
+  $('#axes').innerHTML = AXES.map(a =>
+    `<div class="axis"><span>${a}</span><div class="bar"><i style="left:calc(${vec[a] * 100}% - 4px)"></i></div></div>`).join('');
+}
+
+$('#finish').onclick = finish;
+
+// --- 5 done ---------------------------------------------------------------
+async function finish() {
+  const me = await api('/me');
+  $('#done-sub').textContent = `${me.profile.swipes} signals, ${Math.round(me.profile.confidence * 100)}% confidence.`
+    + (me.profile.confidence < 0.45 ? ' Thin — swipe more for direction you can rely on.' : '');
+  show('step-done');
+}
+
+document.querySelectorAll('[data-fmt]').forEach(b => b.onclick = async () => {
+  // Fetch with the auth header, then hand the browser a blob.
+  const res = await fetch(`${API}/export?format=${b.dataset.fmt}`, { headers: { authorization: `Bearer ${token}` } });
+  if (!res.ok) { $('#done-err').textContent = 'Export failed.'; return; }
+  const name = (res.headers.get('content-disposition') || '').match(/filename="([^"]+)"/)?.[1] || 'taste.md';
+  const url = URL.createObjectURL(await res.blob());
+  Object.assign(document.createElement('a'), { href: url, download: name }).click();
+  URL.revokeObjectURL(url);
+});
+
+$('#mkkey').onclick = async () => {
+  try {
+    const { token: key } = await api('/keys', { method: 'POST', body: { label: 'default' } });
+    $('#key-area').innerHTML = `
+      <p class="muted">Copy this now — it is not shown again.</p>
+      <div class="key" style="margin-top:8px">${key}</div>
+      <p class="muted" style="margin-top:20px">Claude Code:</p>
+      <pre><code>claude mcp add --transport http skulpt ${API}/mcp \\
+  --header "Authorization: Bearer ${key}"</code></pre>
+      <p class="muted" style="margin-top:16px">Cursor / Codex — <code>mcp.json</code>:</p>
+      <pre><code>${JSON.stringify({ mcpServers: { skulpt: { url: `${API}/mcp`, headers: { Authorization: `Bearer ${key}` } } } }, null, 2)}</code></pre>`;
+  } catch (e) { $('#done-err').textContent = e.message; }
+};
+
+// --- boot -----------------------------------------------------------------
+(async () => {
+  if (!token) return show('step-auth');
+  try {
+    const me = await api('/me');
+    $('#who').textContent = `${me.email} · ${me.plan}`;
+    if (!me.profile) return show('step-url');
+    state.profile = me.profile;
+    $('#swipe-sub').textContent = me.profile.site ? `Variants of ${me.profile.site.host}.` : '';
+    show('step-swipe');
+    paint(me.profile.vector, me.profile.confidence);
+    const r = await api(`/deck?profileId=${me.profile.id}`);
+    state.deck = r.deck; state.i = 0;
+    render();
+  } catch { show('step-auth'); }
+})();
+</script>
+</body>
+</html>
