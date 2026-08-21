@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skulpt — Give your coding agent taste</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Inter:wght@400;450;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14170f; --ink-2:#4b5142; --ink-3:#7a8070;
+  --lime:#c9e34a; --lime-2:#e8f39b; --moss:#5e8c2a; --leaf:#8bc34a;
+  --paper:#fbfcf7; --line:rgba(20,23,15,.10); --line-2:rgba(20,23,15,.06);
+  --shadow:0 24px 60px -24px rgba(20,23,15,.28), 0 2px 8px rgba(20,23,15,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  color:var(--ink); background:var(--paper);
+  -webkit-font-smoothing:antialiased; line-height:1.5;
+}
+h1,h2,h3,.tight{font-family:'Inter Tight',Inter,sans-serif;letter-spacing:-.03em;line-height:1.02}
+.wrap{max-width:1140px;margin:0 auto;padding:0 32px}
+section{position:relative}
+
+/* ---------- nav ---------- */
+nav{position:absolute;top:0;left:0;right:0;z-index:60;background:transparent}
+nav .wrap{display:flex;align-items:center;gap:40px;height:64px}
+.logo{display:flex;align-items:center;gap:9px;font-weight:600;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.logo i{width:16px;height:16px;border-radius:5px;background:linear-gradient(140deg,var(--lime),var(--moss));display:block}
+nav ul{display:flex;gap:28px;list-style:none;margin-left:auto;margin-right:auto}
+nav a{color:var(--ink-2);text-decoration:none;font-size:14px}
+nav a:hover{color:var(--ink)}
+.nav-cta{font-size:13px;font-weight:500;padding:8px 14px;border-radius:999px;background:rgba(20,23,15,.9);color:#fff;text-decoration:none}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;gap:10px;padding:13px 20px;border-radius:12px;font-size:15px;font-weight:500;text-decoration:none;border:1px solid transparent;cursor:pointer;transition:transform .15s,box-shadow .2s}
+.btn:active{transform:translateY(1px)}
+.btn-dark{background:var(--ink);color:#fff;box-shadow:0 8px 20px -8px rgba(20,23,15,.5)}
+.btn-ghost{background:rgba(255,255,255,.7);border-color:var(--line);color:var(--ink)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;padding:152px 0 0;overflow:hidden;isolation:isolate}
+.hero::before{content:"";position:absolute;inset:0;z-index:-2;
+  background:url('assets/hero-noise.jpg') center/cover no-repeat;}
+.hero::after{content:"";position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(180deg,rgba(251,252,247,0) 62%,rgba(251,252,247,.6) 84%,var(--paper) 100%)}
+.hero-grid{display:grid;grid-template-columns:minmax(0,.86fr) minmax(0,1.14fr);gap:56px;align-items:center}
+h1{font-size:clamp(40px,5.4vw,68px);font-weight:600}
+h1 .dim{color:rgba(20,23,15,.34)}
+.sub{margin-top:22px;font-size:17px;color:var(--ink-2);max-width:34ch}
+.works{}
+.hero-actions{display:flex;gap:12px;margin-top:32px;flex-wrap:wrap}
+.works{display:flex;align-items:center;gap:8px;margin-top:22px;font-size:13.5px;color:var(--ink-3)}
+
+/* ---------- swipe deck ---------- */
+.deck-stage{position:relative;height:430px;display:flex;align-items:center;justify-content:center}
+.deck{position:relative;width:296px;height:390px}
+.card{position:absolute;inset:0;border-radius:20px;background:#fff;box-shadow:var(--shadow);overflow:hidden;
+  border:1px solid var(--line-2);transition:transform .45s cubic-bezier(.2,.8,.25,1),opacity .35s;
+  display:flex;flex-direction:column;cursor:grab;user-select:none}
+.card.gone{transition:transform .5s cubic-bezier(.3,.7,.2,1),opacity .4s}
+.card-top{height:14px;display:flex;align-items:center;gap:4px;padding:0 12px;border-bottom:1px solid var(--line-2);height:30px}
+.dot{width:7px;height:7px;border-radius:50%;background:rgba(20,23,15,.14)}
+.card-art{flex:1;padding:26px;display:flex;flex-direction:column;justify-content:flex-end;position:relative}
+.card-art h4{font-family:'Inter Tight';font-size:30px;font-weight:600;letter-spacing:-.03em;line-height:1.05}
+.card-art p{font-size:12.5px;color:var(--ink-2);margin-top:10px;max-width:26ch}
+.tag{position:absolute;top:20px;left:22px;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.stamp{position:absolute;top:22px;right:22px;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  padding:5px 11px;border-radius:999px;opacity:0;transition:opacity .18s;border:1.5px solid}
+.stamp.love{color:var(--moss);border-color:var(--moss);background:rgba(139,195,74,.12)}
+.stamp.pass{color:#b4553f;border-color:#b4553f;background:rgba(180,85,63,.1)}
+.a1{background:linear-gradient(150deg,#f0f6b8,#cfe6a0 55%,#a8d7c9)}
+.a2{background:linear-gradient(160deg,#fdfdfb,#eef2e2)}
+.a3{background:linear-gradient(150deg,#1c1f18,#33392b);color:#f6f8ef}
+.a3 p{color:rgba(246,248,239,.62)}
+.a4{background:linear-gradient(150deg,#fff3d6,#ffe1b3 60%,#f6c99a)}
+.a5{background:linear-gradient(160deg,#e6ecff,#d7e0fb 60%,#c2cef7)}
+
+.deck-controls{display:flex;gap:18px;justify-content:center;margin-top:26px}
+.ctrl{width:56px;height:56px;border-radius:50%;background:#fff;border:1px solid var(--line-2);box-shadow:0 8px 22px -10px rgba(20,23,15,.35);
+  display:grid;place-items:center;cursor:pointer;transition:transform .15s,box-shadow .2s;font-size:20px}
+.ctrl:hover{transform:translateY(-3px);box-shadow:0 14px 28px -12px rgba(20,23,15,.4)}
+.ctrl.love{width:64px;height:64px;background:linear-gradient(150deg,#fff,#f2f8dc)}
+.ctrl-lab{text-align:center;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);margin-top:8px}
+.ctrl-wrap{display:flex;flex-direction:column;align-items:center}
+
+/* ---------- taste bar ---------- */
+.tastebar{margin:56px 0 0;padding:20px 26px;border-radius:16px;background:rgba(255,255,255,.72);border:1px solid var(--line-2);
+  display:flex;align-items:center;gap:22px;flex-wrap:wrap;backdrop-filter:blur(8px)}
+.tastebar b{font-size:13.5px;font-weight:500;white-space:nowrap}
+.meter{flex:1;min-width:180px;height:7px;border-radius:99px;background:rgba(20,23,15,.08);overflow:hidden}
+.meter i{display:block;height:100%;width:18%;border-radius:99px;background:linear-gradient(90deg,var(--lime),var(--leaf));transition:width .5s cubic-bezier(.2,.8,.25,1)}
+.sig{font-size:12.5px;color:var(--ink-3);white-space:nowrap}
+.chips{display:flex;gap:7px}
+.chip{font-size:11.5px;padding:5px 11px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2);background:#fff;transition:.25s}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* ---------- generic section ---------- */
+.band{padding:104px 0}
+.band.tintA{background:linear-gradient(180deg,var(--paper),#f4f8e4)}
+.band.tintB{background:linear-gradient(180deg,#f4f8e4,#eaf2d0)}
+.band.tintC{background:linear-gradient(180deg,#eaf2d0,#e2eebd)}
+.ruled{align-items:start}
+.ruled>div:first-child,.ruled .step,.ruled .tool{border-top:1px solid var(--line);padding-top:20px}
+.ruled .step{border-top:1px solid var(--line)}
+
+.eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:18px}
+h2{font-size:clamp(30px,3.6vw,44px);font-weight:600}
+.lede{margin-top:16px;font-size:16.5px;color:var(--ink-2);max-width:44ch}
+.split{display:grid;grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr);gap:56px;align-items:center}
+
+/* teach-it strip */
+.strip{display:flex;gap:16px;align-items:stretch;overflow:hidden;mask-image:linear-gradient(90deg,#000 0,#000 78%,transparent)}
+.mini{flex:0 0 190px;height:250px;border-radius:16px;border:1px solid var(--line-2);box-shadow:0 14px 34px -22px rgba(20,23,15,.4);
+  padding:20px;display:flex;flex-direction:column;justify-content:flex-end;position:relative}
+.mini h5{font-family:'Inter Tight';font-size:21px;font-weight:600;letter-spacing:-.02em;line-height:1.08}
+.mini span{font-size:11.5px;color:var(--ink-3);margin-top:8px;display:block}
+.mini.hot{flex:0 0 230px;height:290px;align-self:center;box-shadow:0 26px 54px -26px rgba(20,23,15,.5);outline:2px solid rgba(139,195,74,.55);outline-offset:-1px}
+.mini.hot::before{content:"✕ PASS";position:absolute;top:14px;left:14px;font-size:10px;font-weight:600;letter-spacing:.1em;
+  background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 9px}
+
+/* before / after */
+.ba{display:grid;grid-template-columns:1fr 44px 1fr;gap:0;align-items:center}
+.pane{border-radius:16px;border:1px solid var(--line-2);background:#fff;box-shadow:0 18px 40px -26px rgba(20,23,15,.4);overflow:hidden}
+.pane-lab{font-size:11px;padding:9px 14px;border-bottom:1px solid var(--line-2);color:var(--ink-3);display:flex;gap:7px;align-items:center}
+.pane-lab b{font-weight:500;color:var(--ink-2)}
+.wire{padding:22px;display:flex;flex-direction:column;gap:10px;min-height:230px}
+.wire .box{background:rgba(20,23,15,.07);border-radius:6px;height:12px}
+.wire .box.big{height:74px}
+.wire .row{display:flex;gap:10px}
+.wire .row .box{flex:1;height:44px}
+.good{padding:26px;min-height:230px;background:linear-gradient(150deg,#f2f8d8,#dcecc0 60%,#bfdcc2);display:flex;flex-direction:column;justify-content:flex-end}
+.good h4{font-family:'Inter Tight';font-size:32px;font-weight:600;letter-spacing:-.03em;line-height:1.03}
+.good p{font-size:12.5px;color:var(--ink-2);margin-top:10px}
+.arrow{display:grid;place-items:center;color:var(--ink-3);font-size:20px}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.step{border-top:1px solid var(--line);padding-top:20px}
+.step .n{font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.step .n em{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;background:#fff;border:1px solid var(--line);font-style:normal;font-size:11px}
+.step h3{font-size:22px;font-weight:600}
+.step p{font-size:14.5px;color:var(--ink-2);margin-top:10px}
+
+/* stack */
+.stack{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.tool{display:flex;flex-direction:column;gap:12px}
+.tool .h{margin-top:2px}
+.tool .h{display:flex;align-items:center;gap:11px;font-family:'Inter Tight';font-size:19px;font-weight:600;letter-spacing:-.02em}
+.tool .h em{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#fff;border:1px solid var(--line-2);font-style:normal;font-size:15px}
+.tool p{font-size:14px;color:var(--ink-2)}
+
+/* cta */
+.cta{background:linear-gradient(180deg,#e2eebd,#cfe58e);padding:104px 0}
+.cta .wrap{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.cta-actions{display:flex;flex-direction:column;gap:12px;align-items:stretch;max-width:280px;margin-left:auto}
+.cta-actions .btn{justify-content:space-between}
+footer{background:#cfe58e;padding:0 0 48px}
+footer .wrap{display:flex;gap:20px;font-size:13px;color:var(--ink-2);border-top:1px solid rgba(20,23,15,.12);padding-top:24px;flex-wrap:wrap}
+footer a{color:var(--ink-2);text-decoration:none}
+footer .sp{margin-left:auto}
+
+@media (max-width:900px){
+  .hero .wrap,.split,.cta .wrap{grid-template-columns:1fr}
+  .steps,.stack{grid-template-columns:1fr}
+  .ba{grid-template-columns:1fr;gap:18px}
+  .arrow{transform:rotate(90deg);height:34px}
+  nav ul{display:none}
+  .cta-actions{margin-left:0}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="logo"><i></i> Skulpt</div>
+    <ul>
+      <li><a href="#teach">Product</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#results">Examples</a></li>
+      <li><a href="#stack">Docs</a></li>
+      <li><a href="#cta">Pricing</a></li>
+    </ul>
+    <a class="nav-cta" href="#cta">Install MCP</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1>Your agent<br>can code.<br><span class="dim">Now give it taste.</span></h1>
+      <p class="sub">Swipe what you love. Skulpt turns your taste into design direction your coding agent can actually use.</p>
+      <div class="hero-actions">
+        <a class="btn btn-dark" href="#teach">Train my taste ↗</a>
+        <a class="btn btn-ghost" href="#cta">Install MCP ⤓</a>
+      </div>
+      <div class="works">◎ Works with Claude Code + Codex + Cursor</div>
+    </div>
+
+    <div>
+      <div class="deck-stage"><div class="deck" id="deck"></div></div>
+      <div class="deck-controls">
+        <div class="ctrl-wrap"><button class="ctrl" data-v="pass">✕</button><div class="ctrl-lab">Pass</div></div>
+        <div class="ctrl-wrap"><button class="ctrl love" data-v="love">✦</button><div class="ctrl-lab">Love</div></div>
+        <div class="ctrl-wrap"><button class="ctrl" data-v="keep">♡</button><div class="ctrl-lab">Keep</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="tastebar">
+      <b>Taste locked <span id="pct">18%</span></b>
+      <div class="meter"><i id="meter"></i></div>
+      <div class="sig">14 design signals</div>
+      <div class="chips" id="chips">
+        <span class="chip">Type</span><span class="chip">Density</span><span class="chip">Colour</span><span class="chip">Motion</span>
+      </div>
+    </div>
+  </div>
+  <div style="height:104px"></div>
+</section>
+
+<section class="band tintA" id="teach">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow">Taste capture</div>
+      <h2>Teach it<br>your taste.</h2>
+      <p class="lede">Swipe through designs, thirty of them. Skulpt reads what you love and builds a taste profile your agent can follow — no style brief, no mood board, no arguing with a model about "clean".</p>
+    </div>
+    <div class="strip">
+      <div class="mini" style="background:linear-gradient(150deg,#f4f8e0,#e3eec8)"><h5>Calm focus clarity</h5><span>Editorial · low density</span></div>
+      <div class="mini hot" style="background:linear-gradient(150deg,#fff,#eef4dd)"><h5>A better way to grow</h5><span>Serif · generous space</span></div>
+      <div class="mini" style="background:linear-gradient(150deg,#dfeeca,#c8e0ae)"><h5>Build beautiful products</h5><span>Grid · high contrast</span></div>
+      <div class="mini" style="background:linear-gradient(150deg,#f7f4e6,#ece6cf)"><h5>Craft that lasts</h5><span>Warm · textural</span></div>
+      <div class="mini" style="background:linear-gradient(150deg,#e8f0ff,#d3ddf7)"><h5>Precision by default</h5><span>Cool · systematic</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="band tintB" id="results">
+  <div class="wrap split">
+    <div>
+      <div class="eyebrow">Output</div>
+      <h2>Better direction.<br>Better results.</h2>
+      <p class="lede">Skulpt translates your taste into clear design direction your coding agent actually follows — the same prompt, a very different page.</p>
+    </div>
+    <div class="ba">
+      <div class="pane">
+        <div class="pane-lab"><b>Generic agent output</b></div>
+        <div class="wire">
+          <div class="box big"></div>
+          <div class="box" style="width:60%"></div>
+          <div class="box" style="width:38%"></div>
+          <div class="row"><div class="box"></div><div class="box"></div><div class="box"></div></div>
+        </div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="pane">
+        <div class="pane-lab"><b>With Skulpt taste</b></div>
+        <div class="good">
+          <h4>Grow with<br>balance</h4>
+          <p>Type scale, spacing rhythm and palette pulled straight from your swipes.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band tintC" id="how">
+  <div class="wrap">
+    <div class="split ruled">
+      <div><div class="eyebrow">Process</div><h2>How it<br>works</h2></div>
+      <div class="steps">
+        <div class="step"><div class="n"><em>1</em> Swipe</div><h3>You react</h3><p>Tell Skulpt what you love — and what you don't — in about sixty seconds.</p></div>
+        <div class="step"><div class="n"><em>2</em> Learn</div><h3>Taste compiles</h3><p>Fourteen design signals get extracted into a portable taste profile.</p></div>
+        <div class="step"><div class="n"><em>3</em> Guide</div><h3>Agent builds</h3><p>Your agent receives concrete direction over MCP and ships work that looks like you.</p></div>
+      </div>
+    </div>
+
+    <div class="split ruled" id="stack" style="margin-top:96px">
+      <div><div class="eyebrow">Integrations</div><h2>Works with<br>your stack.</h2></div>
+      <div class="stack">
+        <div class="tool"><div class="h"><em>✳</em> Claude Code</div><p>Pass taste to Claude Code via the Skulpt server.</p></div>
+        <div class="tool"><div class="h"><em>◍</em> Codex</div><p>Enhance Codex output with your design signals.</p></div>
+        <div class="tool"><div class="h"><em>▧</em> Cursor</div><p>Plug Skulpt into Cursor for better UI, faster.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="cta" id="cta">
+  <div class="wrap">
+    <div>
+      <h2>Taste is your<br>competitive edge.</h2>
+      <p class="lede">Skulpt helps your agent ship work that looks like you — consistently.</p>
+    </div>
+    <div class="cta-actions">
+      <a class="btn btn-dark" href="#">Train my taste <span>↗</span></a>
+      <a class="btn btn-ghost" href="#">Install MCP <span>⤓</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© 2026 Skulpt · goskulpt.com</span>
+    <a href="#">Docs</a><a href="#">Changelog</a><a href="#">GitHub</a>
+    <span class="sp">Built for agents with an eye.</span>
+  </div>
+</footer>
+
+<script>
+// ponytail: hardcoded deck, no data layer — swap for a fetch when cards come from a server.
+const CARDS = [
+  {cls:'a1', tag:'Editorial', h:'Design<br>that moves<br>with purpose', p:'Generous whitespace, one accent, quiet type.'},
+  {cls:'a2', tag:'Systematic', h:'Precision<br>by default', p:'Tight grid, neutral palette, zero ornament.'},
+  {cls:'a3', tag:'Nocturne', h:'Dark, but<br>not heavy', p:'Deep ground, high contrast, restrained glow.'},
+  {cls:'a4', tag:'Warm', h:'Craft that<br>lasts', p:'Textured surfaces, humanist type, soft edges.'},
+  {cls:'a5', tag:'Cool', h:'Clarity at<br>every scale', p:'Cold neutrals, crisp rules, dense information.'}
+];
+const SIGNALS=['Type','Density','Colour','Motion','Radius','Depth','Contrast','Texture'];
+const deck=document.getElementById('deck'), meter=document.getElementById('meter'),
+      pct=document.getElementById('pct'), chips=document.getElementById('chips');
+let i=0, swipes=0;
+
+function render(){
+  deck.innerHTML='';
+  for(let k=2;k>=0;k--){
+    const c=CARDS[(i+k)%CARDS.length];
+    const el=document.createElement('div');
+    el.className='card '+c.cls;
+    el.style.transform=`translate(${k*26}px,${k*-10}px) scale(${1-k*.04}) rotate(${k*3}deg)`;
+    el.style.zIndex=10-k;
+    el.innerHTML=`<div class="card-top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+      <div class="card-art"><span class="tag">${c.tag}</span>
+      <span class="stamp love">Love</span><span class="stamp pass">Pass</span>
+      <h4>${c.h}</h4><p>${c.p}</p></div>`;
+    if(k===0) drag(el);
+    deck.appendChild(el);
+  }
+}
+
+function swipe(v){
+  const top=deck.querySelector('.card:last-child');
+  if(!top) return;
+  const dir = v==='pass' ? -1 : 1;
+  top.classList.add('gone');
+  top.style.transform=`translate(${dir*460}px, ${v==='love'?-60:40}px) rotate(${dir*18}deg)`;
+  top.style.opacity='0';
+  swipes++; i++;
+  progress();
+  setTimeout(render,340);
+}
+
+function progress(){
+  const p=Math.min(100, 18+swipes*9);
+  meter.style.width=p+'%'; pct.textContent=p+'%';
+  [...chips.children].forEach((c,n)=>c.classList.toggle('on', n<Math.min(4,swipes)));
+}
+
+// drag-to-swipe on the top card
+function drag(el){
+  let x0=0,y0=0,dx=0,dragging=false;
+  const love=el.querySelector('.stamp.love'), pass=el.querySelector('.stamp.pass');
+  const down=e=>{dragging=true;el.style.transition='none';el.style.cursor='grabbing';
+    x0=(e.touches?e.touches[0]:e).clientX; y0=(e.touches?e.touches[0]:e).clientY;};
+  const move=e=>{if(!dragging)return;
+    const p=e.touches?e.touches[0]:e; dx=p.clientX-x0; const dy=p.clientY-y0;
+    el.style.transform=`translate(${dx}px,${dy}px) rotate(${dx*.05}deg)`;
+    love.style.opacity=dx>50?1:0; pass.style.opacity=dx<-50?1:0;};
+  const up=()=>{if(!dragging)return; dragging=false; el.style.cursor='grab'; el.style.transition='';
+    if(Math.abs(dx)>90){swipe(dx>0?'love':'pass');} else {el.style.transform='';love.style.opacity=0;pass.style.opacity=0;}
+    dx=0;};
+  el.addEventListener('mousedown',down); el.addEventListener('touchstart',down,{passive:true});
+  window.addEventListener('mousemove',move); window.addEventListener('touchmove',move,{passive:true});
+  window.addEventListener('mouseup',up); window.addEventListener('touchend',up);
+}
+
+document.querySelectorAll('.ctrl').forEach(b=>b.onclick=()=>swipe(b.dataset.v));
+render(); progress();
+</script>
+</body>
+</html>
