@@ -64,9 +64,11 @@ Resources: `skulpt://taste/profile`, `skulpt://taste/anti-patterns`.
 Install (HTTP transport — no local process, no npx):
 
 ```bash
-claude mcp add --transport http skulpt https://<your-api>/mcp \
+claude mcp add --transport http skulpt https://skulpt-web-production.up.railway.app/mcp \
   --header "Authorization: Bearer skmcp_..."
 ```
+
+Live: lander <https://yuqinggg.github.io/goskulpt/> · app <https://yuqinggg.github.io/goskulpt/app/> · API <https://skulpt-web-production.up.railway.app>
 
 ## Running it
 
