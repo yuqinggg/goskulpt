@@ -94,10 +94,24 @@ export async function consumeMagicToken(token) {
   return row?.email ?? null;
 }
 
+// ponytail: no billing yet, so an env allowlist IS the plan mechanism.
+// Replace with a webhook from the payment provider when one exists.
+const PRO = (process.env.SKULPT_PRO_EMAILS || '')
+  .split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+
+export async function applyProAllowlist() {
+  if (!PRO.length) return 0;
+  const rows = await sql`update users set plan = 'pro'
+                         where email = any(${PRO}) and plan <> 'pro' returning email`;
+  return rows.length;
+}
+
 export async function upsertUser(email) {
+  const clean = email.toLowerCase().trim();
   const [u] = await sql`
-    insert into users (email) values (${email.toLowerCase().trim()})
-    on conflict (email) do update set email = excluded.email
+    insert into users (email, plan) values (${clean}, ${PRO.includes(clean) ? 'pro' : 'free'})
+    on conflict (email) do update set plan = case
+      when ${PRO.includes(clean)} then 'pro' else users.plan end
     returning *`;
   return u;
 }

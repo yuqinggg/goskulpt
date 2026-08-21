@@ -209,6 +209,8 @@ app.all('/mcp', async c => {
 });
 
 await db.migrate();
+const promoted = await db.applyProAllowlist();
+if (promoted) console.log(`promoted ${promoted} account(s) to pro`);
 serve({ fetch: app.fetch, port: PORT }, info => {
   console.log(`skulpt api on :${info.port}`);
   if (!process.env.ANTHROPIC_API_KEY) console.warn('  ANTHROPIC_API_KEY unset — deslop_rewrite will refuse.');
